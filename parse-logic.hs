@@ -1,5 +1,4 @@
--- Parse logical experession like "TRUE AND (TRUE OR FALSE) AND FALSE"
-
+-- Parse logical experessions, like "TRUE AND (TRUE OR FALSE) AND FALSE"
 module Main where
 
 import Control.Monad
@@ -48,7 +47,7 @@ parseParens = do
   lexeme $ char ')'
   return $ PARENS expr
 
--- Each operand can be seen as a bool, or an expression inside parentheses
+-- Each operand can be seen as a bool value, or an expression inside parentheses
 parseBoolOrParens :: Parser LogicExpr
 parseBoolOrParens = parseBool <|> parseParens
 
@@ -61,18 +60,19 @@ parseOp = chainl1 parseBoolOrParens op
         "AND" -> AND
         "OR" -> OR
 
+-- parse an expression : combinator of three parsers above
 parseExpr :: Parser LogicExpr
 parseExpr = parseParens
             <|> parseOp
             <|> parseBool
 
-
+-- same as above, but with leading whitespaces cut-off 
 parseExpr2 = do
   whitespace
   t <- parseExpr
   return t
   
--- Tell the compiler how to print LogicExpr out   
+-- Tell the program how to print LogicExpr out   
 showExpr :: LogicExpr -> String
 showExpr (BOOL b) = show b
 showExpr (AND a b) = (showExpr a) ++ " and " ++ (showExpr b)
@@ -89,11 +89,6 @@ eval (OR a b) = (eval a) || (eval b)
 eval (PARENS m) = eval m
 
 -- test parser
-readExpr :: String -> String
-readExpr input = case parse parseExpr "abc" input of
-  Left err -> "Invalid expression!"
-  Right val -> "Found " ++ show val
-
 test :: String -> String
 test input = case parse parseExpr2 "abc" input of
   Left err -> "Invalid expression!"
